@@ -102,7 +102,7 @@ export function exportAnalysisExcel(a: Analysis, j: AJ) {
 
 export async function exportAnalysisWord(a: Analysis, j: AJ) {
   const para = (text: string) => new Paragraph({ children: [new TextRun(text)] });
-  const h = (text: string, level: typeof HeadingLevel.HEADING_1 = HeadingLevel.HEADING_1) => new Paragraph({ heading: level, children: [new TextRun(text)] });
+  const h = (text: string, level: (typeof HeadingLevel)[keyof typeof HeadingLevel] = HeadingLevel.HEADING_1) => new Paragraph({ heading: level, children: [new TextRun(text)] });
   const bullet = (text: string) => new Paragraph({ bullet: { level: 0 }, children: [new TextRun(text)] });
 
   const children: Paragraph[] = [
