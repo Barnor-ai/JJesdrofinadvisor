@@ -184,11 +184,6 @@ function ReportView({ analysis }: { analysis: Analysis }) {
                 {(!a.red_flags || a.red_flags.length === 0) && <p className="text-muted-foreground text-sm">No significant red flags detected.</p>}
               </div>
             </Card>
-            {a.trends && a.trends.length > 0 && (
-              <Card className="p-6 mt-4"><h3 className="font-display text-2xl mb-4">Trends</h3>
-                <ul className="space-y-2">{a.trends.map((t, i) => <li key={i} className="text-sm"><span className="font-medium">{t.metric}</span> — <span className="text-muted-foreground">{t.direction}</span> · {t.comment}</li>)}</ul>
-              </Card>
-            )}
           </TabsContent>
 
           <TabsContent value="advice" className="space-y-4">
