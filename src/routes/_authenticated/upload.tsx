@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { runAnalysis } from "@/lib/finscope.functions";
 import { toast } from "sonner";
 import { UploadCloud, Loader2 } from "lucide-react";
+import { PERIODS } from "@/lib/finscope-constants";
 
 export const Route = createFileRoute("/_authenticated/upload")({
   head: () => ({ meta: [{ title: "New analysis — FinScope" }] }),
@@ -22,6 +23,7 @@ function UploadPage() {
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [companyId, setCompanyId] = useState("");
   const [title, setTitle] = useState("");
+  const [periodType, setPeriodType] = useState<string>("Annually");
   const [period, setPeriod] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,8 +48,9 @@ function UploadPage() {
       const up = await supabase.storage.from("statements").upload(path, file);
       if (up.error) throw up.error;
 
+      const fullPeriod = period ? `${periodType} · ${period}` : periodType;
       const ins = await supabase.from("analyses").insert({
-        user_id: user.id, company_id: companyId, title, period_label: period,
+        user_id: user.id, company_id: companyId, title, period_label: fullPeriod,
         file_name: file.name, file_url: path, status: "processing",
       }).select().single();
       if (ins.error) throw ins.error;
@@ -78,7 +81,15 @@ function UploadPage() {
                 </select>
               </div>
               <div><Label>Report title</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. FY2024 Annual" required /></div>
-              <div><Label>Period</Label><Input value={period} onChange={e => setPeriod(e.target.value)} placeholder="e.g. Jan–Dec 2024 or Q3 2024" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Report period</Label>
+                  <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={periodType} onChange={e => setPeriodType(e.target.value)}>
+                    {PERIODS.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div><Label>Period label (optional)</Label><Input value={period} onChange={e => setPeriod(e.target.value)} placeholder="e.g. Jan–Dec 2024" /></div>
+              </div>
               <div>
                 <Label>Financial statement file</Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-gold/60 transition cursor-pointer relative">

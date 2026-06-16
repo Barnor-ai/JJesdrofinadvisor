@@ -1,12 +1,14 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Upload, Settings, LogOut, FileText } from "lucide-react";
+import { Building2, Upload, TrendingUp, LayoutDashboard, FileText, Settings, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 
 const nav = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/company", label: "Company profile", icon: Building2 },
   { to: "/upload", label: "New analysis", icon: Upload },
+  { to: "/profitability", label: "Profitability", icon: TrendingUp },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/analyses", label: "Reports", icon: FileText },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

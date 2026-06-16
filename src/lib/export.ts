@@ -13,9 +13,10 @@ type AJ = {
   executive_summary?: string; financial_health_score?: number; risk_score?: number;
   profitability_analysis?: string; liquidity_analysis?: string; cash_flow_analysis?: string;
   debt_risk_analysis?: string; investor_commentary?: string; conclusion?: string;
-  ratios?: Array<{ name: string; value: string; interpretation: string; status: string }>;
+  ratios?: Array<{ name: string; value: string; formula?: string; computation?: string; interpretation: string; status: string }>;
   red_flags?: Array<{ severity: string; issue: string; evidence: string }>;
   recommendations?: string[]; strategic_advice?: string[]; cost_savings?: string[];
+  yoy_pl?: Array<{ line_item: string; current: number | null; previous: number | null; change: number | null; change_pct: number | null }>;
 };
 
 function fileBase(a: Analysis) {
@@ -45,10 +46,26 @@ export function exportAnalysisPDF(a: Analysis, j: AJ) {
   section("Cash Flow Analysis", j.cash_flow_analysis);
   section("Debt & Risk Analysis", j.debt_risk_analysis);
 
+  if (j.yoy_pl?.length) {
+    doc.addPage(); y = 20;
+    doc.setFontSize(14); doc.setTextColor(...navy); doc.text("Year-over-Year Profitability", 14, y); y += 4;
+    autoTable(doc, {
+      startY: y + 2,
+      head: [["Line item", "Current", "Previous", "Change", "% Change"]],
+      body: j.yoy_pl.map(r => [r.line_item, r.current?.toLocaleString() ?? "—", r.previous?.toLocaleString() ?? "—", r.change?.toLocaleString() ?? "—", r.change_pct !== null && r.change_pct !== undefined ? `${r.change_pct.toFixed(1)}%` : "—"]),
+      headStyles: { fillColor: navy },
+    });
+  }
   if (j.ratios?.length) {
     doc.addPage(); y = 20;
     doc.setFontSize(14); doc.setTextColor(...navy); doc.text("Key Ratios", 14, y); y += 4;
-    autoTable(doc, { startY: y + 2, head: [["Ratio", "Value", "Interpretation", "Status"]], body: j.ratios.map(r => [r.name, r.value, r.interpretation, r.status]), headStyles: { fillColor: navy } });
+    autoTable(doc, {
+      startY: y + 2,
+      head: [["Ratio", "Value", "Formula", "Computation", "Interpretation", "Status"]],
+      body: j.ratios.map(r => [r.name, r.value, r.formula ?? "—", r.computation ?? "—", r.interpretation, r.status]),
+      headStyles: { fillColor: navy },
+      styles: { fontSize: 8 },
+    });
   }
   if (j.red_flags?.length) {
     autoTable(doc, { head: [["Severity", "Issue", "Evidence"]], body: j.red_flags.map(f => [f.severity, f.issue, f.evidence]), headStyles: { fillColor: navy } });
@@ -83,6 +100,9 @@ export function exportAnalysisExcel(a: Analysis, j: AJ) {
     [], ["Conclusion"], [j.conclusion ?? ""],
   ];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
+  if (j.yoy_pl?.length) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(j.yoy_pl), "YoY Profitability");
+  }
   if (j.ratios?.length) {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(j.ratios), "Ratios");
   }
@@ -114,8 +134,10 @@ export async function exportAnalysisWord(a: Analysis, j: AJ) {
     h("Liquidity Analysis"), para(j.liquidity_analysis ?? ""),
     h("Cash Flow Analysis"), para(j.cash_flow_analysis ?? ""),
     h("Debt & Risk Analysis"), para(j.debt_risk_analysis ?? ""),
+    h("Year-over-Year Profitability", HeadingLevel.HEADING_2),
+    ...(j.yoy_pl ?? []).map(r => para(`${r.line_item}: ${r.current ?? "—"} vs ${r.previous ?? "—"} | Δ ${r.change ?? "—"} (${r.change_pct !== null && r.change_pct !== undefined ? r.change_pct.toFixed(1) + "%" : "—"})`)),
     h("Key Ratios", HeadingLevel.HEADING_2),
-    ...(j.ratios ?? []).map(r => para(`${r.name}: ${r.value} — ${r.interpretation} (${r.status})`)),
+    ...(j.ratios ?? []).map(r => para(`${r.name}: ${r.value} — ${r.formula ?? ""} = ${r.computation ?? ""} — ${r.interpretation} (${r.status})`)),
     h("Red Flags", HeadingLevel.HEADING_2),
     ...(j.red_flags ?? []).map(f => para(`[${f.severity.toUpperCase()}] ${f.issue} — ${f.evidence}`)),
     h("Recommendations", HeadingLevel.HEADING_2),
