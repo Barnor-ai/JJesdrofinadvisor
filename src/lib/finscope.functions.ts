@@ -8,21 +8,45 @@ const RunInput = z.object({
   analysisId: z.string().uuid(),
 });
 
-const SYSTEM_PROMPT = `You are a senior financial consultant and CFA-level analyst. You analyze financial statements (Income Statement, Balance Sheet, Cash Flow), compute ratios, detect red flags, score risk 1-10, and write investor-grade commentary in professional but plain business English. Output STRICT JSON only — no prose outside JSON.`;
+const SYSTEM_PROMPT = `You are a senior financial consultant and CFA-level analyst. You analyze financial statements (Income Statement, Balance Sheet, Cash Flow), compute ratios with their formulas, perform line-by-line year-over-year comparison (current vs previous period), detect red flags, score risk 1-10, and write investor-grade commentary in professional but plain business English. Output STRICT JSON only — no prose outside JSON.
+
+When the statement provides a prior period (comparative figures), always extract BOTH periods and build the year-over-year P&L breakdown. When only one period is available, set previous values to null and note it under assumptions.`;
 
 const ANALYSIS_SCHEMA = `{
   "company_summary": string,
   "executive_summary": string,
-  "financial_health_score": number (1-10, where 10 = excellent health, 1 = severe distress),
-  "risk_score": number (1-10, where 10 = highest risk),
+  "financial_health_score": number (1-10),
+  "risk_score": number (1-10),
   "extracted": {
     "income_statement": { "revenue": number|null, "cogs": number|null, "gross_profit": number|null, "operating_expenses": number|null, "operating_income": number|null, "net_income": number|null, "period": string|null },
-    "balance_sheet": { "current_assets": number|null, "total_assets": number|null, "current_liabilities": number|null, "total_liabilities": number|null, "inventory": number|null, "equity": number|null, "cash": number|null },
+    "prior_income_statement": { "revenue": number|null, "cogs": number|null, "gross_profit": number|null, "operating_expenses": number|null, "operating_income": number|null, "net_income": number|null, "period": string|null },
+    "balance_sheet": { "current_assets": number|null, "total_assets": number|null, "current_liabilities": number|null, "total_liabilities": number|null, "inventory": number|null, "equity": number|null, "cash": number|null, "accounts_receivable": number|null, "accounts_payable": number|null },
     "cash_flow": { "operating_cf": number|null, "investing_cf": number|null, "financing_cf": number|null, "free_cash_flow": number|null },
     "currency": string,
     "period_label": string
   },
-  "ratios": [ { "name": string, "value": string, "interpretation": string, "status": "good"|"warning"|"bad"|"neutral" } ],
+  "summary_metrics": {
+    "revenue": number|null,
+    "accounts_receivable": number|null,
+    "accounts_payable": number|null,
+    "current_ratio": number|null,
+    "equity_ratio": number|null,
+    "gross_margin_pct": number|null,
+    "net_margin_pct": number|null,
+    "debt_to_equity": number|null
+  },
+  "yoy_pl": [
+    { "line_item": string, "current": number|null, "previous": number|null, "change": number|null, "change_pct": number|null, "note": string }
+  ],
+  "ratios": [ { "name": string, "value": string, "formula": string, "computation": string, "interpretation": string, "status": "good"|"warning"|"bad"|"neutral" } ],
+  "trend_series": {
+    "labels": [string],
+    "revenue": [number|null],
+    "gross_profit": [number|null],
+    "net_income": [number|null],
+    "operating_cash_flow": [number|null]
+  },
+  "expense_breakdown": [ { "name": string, "value": number } ],
   "profitability_analysis": string,
   "liquidity_analysis": string,
   "cash_flow_analysis": string,
@@ -35,7 +59,14 @@ const ANALYSIS_SCHEMA = `{
   "investor_commentary": string,
   "conclusion": string,
   "assumptions": [ string ]
-}`;
+}
+
+REQUIREMENTS:
+- yoy_pl MUST cover at minimum: Revenue, Cost of Goods Sold, Gross Profit, Operating Expenses, Operating Income, Other Income/Expense, Tax, Net Income / (Loss). Break out OpEx sub-lines (Salaries, Marketing, R&D, G&A, Depreciation) when present.
+- change = current - previous (null if either is null). change_pct = ((current-previous)/abs(previous))*100, rounded to 1 decimal, or null.
+- Every ratio MUST include both the textbook formula AND the actual computation with the numbers used (e.g. formula: "Current Assets / Current Liabilities", computation: "1,250,000 / 800,000 = 1.56").
+- trend_series provides at least 2 data points (prior + current) and more if multi-period data is available.
+- expense_breakdown items should sum to revenue and include COGS, Operating Expenses (or sub-lines), Tax, Net Income (positive only).`;
 
 export const runAnalysis = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
