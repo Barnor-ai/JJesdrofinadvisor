@@ -13,6 +13,8 @@ import { Send, FileDown, FileSpreadsheet, FileText, Sparkles, AlertTriangle, Arr
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { exportAnalysisPDF, exportAnalysisExcel, exportAnalysisWord } from "@/lib/export";
+import { YoyTable, type YoyRow } from "@/components/yoy-table";
+import { TrendChart } from "@/components/dashboard-charts";
 
 export const Route = createFileRoute("/_authenticated/analyses/$id")({
   head: () => ({ meta: [{ title: "Report — FinScope" }] }),
@@ -66,12 +68,14 @@ type AnalysisJSON = {
   company_summary?: string; profitability_analysis?: string; liquidity_analysis?: string;
   cash_flow_analysis?: string; debt_risk_analysis?: string; investor_commentary?: string;
   conclusion?: string;
-  ratios?: Array<{ name: string; value: string; interpretation: string; status: string }>;
+  ratios?: Array<{ name: string; value: string; formula?: string; computation?: string; interpretation: string; status: string }>;
   red_flags?: Array<{ severity: string; issue: string; evidence: string }>;
   recommendations?: string[]; strategic_advice?: string[]; cost_savings?: string[];
   trends?: Array<{ metric: string; direction: string; comment: string }>;
   assumptions?: string[];
   extracted?: Record<string, unknown>;
+  yoy_pl?: YoyRow[];
+  trend_series?: { labels?: string[]; revenue?: Array<number | null>; gross_profit?: Array<number | null>; net_income?: Array<number | null> };
 };
 
 function ReportView({ analysis }: { analysis: Analysis }) {
@@ -101,9 +105,11 @@ function ReportView({ analysis }: { analysis: Analysis }) {
         </div>
 
         <Tabs defaultValue="report">
-          <TabsList className="mb-4">
+          <TabsList className="mb-4 flex-wrap h-auto">
             <TabsTrigger value="report">Report</TabsTrigger>
+            <TabsTrigger value="profitability">Profitability</TabsTrigger>
             <TabsTrigger value="ratios">Ratios</TabsTrigger>
+            <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="flags">Red flags</TabsTrigger>
             <TabsTrigger value="advice">Advice</TabsTrigger>
             <TabsTrigger value="chat">Ask AI</TabsTrigger>
@@ -122,17 +128,23 @@ function ReportView({ analysis }: { analysis: Analysis }) {
             )}
           </TabsContent>
 
+          <TabsContent value="profitability">
+            <YoyTable rows={a.yoy_pl ?? []} currency={currency} />
+          </TabsContent>
+
           <TabsContent value="ratios">
             <Card className="p-6">
               <h3 className="font-display text-2xl mb-4">Key Financial Ratios</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Ratio</th><th>Value</th><th>Interpretation</th><th>Status</th></tr></thead>
+                  <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Ratio</th><th>Value</th><th>Formula</th><th>Computation</th><th>Interpretation</th><th>Status</th></tr></thead>
                   <tbody>
                     {(a.ratios ?? []).map((r, i) => (
-                      <tr key={i} className="border-b border-border/50">
+                      <tr key={i} className="border-b border-border/50 align-top">
                         <td className="py-3 font-medium">{r.name}</td>
                         <td className="py-3 font-display">{r.value}</td>
+                        <td className="py-3 text-xs text-muted-foreground">{r.formula ?? "—"}</td>
+                        <td className="py-3 text-xs text-muted-foreground font-mono">{r.computation ?? "—"}</td>
                         <td className="py-3 text-muted-foreground">{r.interpretation}</td>
                         <td className="py-3"><span className={`text-xs px-2 py-1 rounded ${r.status === "good" ? "bg-success/15 text-success" : r.status === "bad" ? "bg-destructive/15 text-destructive" : r.status === "warning" ? "bg-warning/15 text-warning-foreground" : "bg-muted"}`}>{r.status}</span></td>
                       </tr>
@@ -141,6 +153,22 @@ function ReportView({ analysis }: { analysis: Analysis }) {
                 </table>
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="trends">
+            {a.trend_series?.labels && a.trend_series.labels.length >= 2 ? (
+              <TrendChart data={a.trend_series.labels.map((label, i) => ({
+                label,
+                revenue: a.trend_series?.revenue?.[i] ?? null,
+                grossProfit: a.trend_series?.gross_profit?.[i] ?? null,
+                netIncome: a.trend_series?.net_income?.[i] ?? null,
+              }))} />
+            ) : <Card className="p-6 text-center text-muted-foreground text-sm">No multi-period trend data extracted from this statement.</Card>}
+            {a.trends && a.trends.length > 0 && (
+              <Card className="p-6 mt-4"><h3 className="font-display text-2xl mb-4">Notable trends</h3>
+                <ul className="space-y-2">{a.trends.map((t, i) => <li key={i} className="text-sm"><span className="font-medium">{t.metric}</span> — <span className="text-muted-foreground">{t.direction}</span> · {t.comment}</li>)}</ul>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="flags">
