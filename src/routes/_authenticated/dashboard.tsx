@@ -29,7 +29,7 @@ function Dashboard() {
     return <AppShell><Onboard onDone={() => navigate({ to: "/upload" })} /></AppShell>;
   }
 
-  const avgRisk = data?.analyses.filter(a => a.risk_score).reduce((s, a) => s + (a.risk_score ?? 0), 0) / Math.max(1, (data?.analyses.filter(a => a.risk_score).length ?? 1));
+  const avgRisk = (data?.analyses.filter(a => a.risk_score).reduce((s, a) => s + (a.risk_score ?? 0), 0) ?? 0) / Math.max(1, (data?.analyses.filter(a => a.risk_score).length ?? 1));
   const completed = data?.analyses.filter(a => a.status === "completed").length ?? 0;
 
   return (
