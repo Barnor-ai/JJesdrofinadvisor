@@ -1,106 +1,143 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck, KeyRound, LogOut, Trash2, Sparkles, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — FinScope" }] }),
   component: SettingsPage,
 });
 
-const CURRENCIES = ["USD", "EUR", "GBP", "NGN", "ZAR", "INR", "JPY", "CNY", "CAD", "AUD", "CHF", "AED", "KES", "GHS"];
-
 function SettingsPage() {
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [location, setLocation] = useState("");
-  const [currency, setCurrency] = useState("USD");
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [logoSigned, setLogoSigned] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [email, setEmail] = useState("");
+  const [provider, setProvider] = useState<string>("email");
+  const [newPwd, setNewPwd] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("companies").select("*").order("created_at").limit(1).maybeSingle();
-      if (data) {
-        setCompanyId(data.id);
-        setName(data.name ?? "");
-        setIndustry(data.industry ?? "");
-        setLocation(data.location ?? "");
-        setCurrency(data.currency ?? "USD");
-        setLogoUrl(data.logo_url ?? null);
-        if (data.logo_url) {
-          const { data: s } = await supabase.storage.from("company-logos").createSignedUrl(data.logo_url, 3600);
-          if (s) setLogoSigned(s.signedUrl);
-        }
-      }
-    })();
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? "");
+      const app = data.user?.app_metadata as { provider?: string } | undefined;
+      setProvider(app?.provider ?? "email");
+    });
   }, []);
 
-  async function uploadLogo(file: File) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const path = `${user.id}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("company-logos").upload(path, file, { upsert: true });
+  async function changePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPwd.length < 8) return toast.error("Use at least 8 characters");
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: newPwd });
+    setBusy(false);
     if (error) return toast.error(error.message);
-    setLogoUrl(path);
-    const { data: s } = await supabase.storage.from("company-logos").createSignedUrl(path, 3600);
-    if (s) setLogoSigned(s.signedUrl);
-    toast.success("Logo uploaded");
+    toast.success("Password updated");
+    setNewPwd("");
   }
 
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  async function signOutEverywhere() {
+    await supabase.auth.signOut({ scope: "global" });
+    qc.clear();
+    toast.success("Signed out of all devices");
+    navigate({ to: "/auth", replace: true });
+  }
+
+  async function deleteAllData() {
+    if (!confirm("Permanently delete all your companies, analyses and chats? This cannot be undone.")) return;
+    setBusy(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const payload = { user_id: user.id, name, industry, location, currency, logo_url: logoUrl, updated_at: new Date().toISOString() };
-    const res = companyId
-      ? await supabase.from("companies").update(payload).eq("id", companyId)
-      : await supabase.from("companies").insert(payload).select().single();
-    setSaving(false);
-    if (res.error) return toast.error(res.error.message);
-    if (!companyId && "data" in res && res.data) setCompanyId((res.data as { id: string }).id);
-    toast.success("Company saved");
+    if (!user) { setBusy(false); return; }
+    await supabase.from("chat_messages").delete().eq("user_id", user.id);
+    await supabase.from("analyses").delete().eq("user_id", user.id);
+    await supabase.from("companies").delete().eq("user_id", user.id);
+    setBusy(false);
+    toast.success("All your FinScope data has been deleted");
   }
 
   return (
     <AppShell>
-      <div className="p-6 md:p-10 max-w-3xl mx-auto">
-        <p className="text-xs tracking-[0.3em] text-gold uppercase">Settings</p>
-        <h1 className="font-display text-4xl mt-2 mb-6">Company profile</h1>
+      <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6">
+        <div>
+          <p className="text-xs tracking-[0.3em] text-gold uppercase">Settings</p>
+          <h1 className="font-display text-4xl mt-2">Admin & security</h1>
+        </div>
+
         <Card>
-          <CardHeader><CardTitle className="font-display">Details</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gold" /> Account</CardTitle>
+            <CardDescription>Signed in as {email || "—"} · provider: <span className="font-medium">{provider}</span></CardDescription>
+          </CardHeader>
+        </Card>
+
+        {provider === "email" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display flex items-center gap-2"><KeyRound className="h-5 w-5 text-gold" /> Change password</CardTitle>
+              <CardDescription>Use at least 8 characters. Mix letters, numbers and symbols.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={changePassword} className="flex gap-2 items-end">
+                <div className="flex-1"><Label>New password</Label><Input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} required /></div>
+                <Button type="submit" variant="navy" disabled={busy}>Update</Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2"><LogOut className="h-5 w-5 text-gold" /> Sessions</CardTitle>
+            <CardDescription>Sign out from all browsers and devices where this account is active.</CardDescription>
+          </CardHeader>
           <CardContent>
-            <form onSubmit={save} className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-lg border border-border bg-muted overflow-hidden flex items-center justify-center">
-                  {logoSigned ? <img src={logoSigned} alt="logo" className="h-full w-full object-cover" /> : <span className="font-display text-2xl text-muted-foreground">{name?.[0] ?? "?"}</span>}
-                </div>
-                <div>
-                  <Label className="text-sm">Company logo</Label>
-                  <Input type="file" accept="image/*" onChange={e => e.target.files?.[0] && uploadLogo(e.target.files[0])} />
-                </div>
-              </div>
-              <div><Label>Company name</Label><Input value={name} onChange={e => setName(e.target.value)} required /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Industry</Label><Input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. SaaS, Retail, Manufacturing" /></div>
-                <div><Label>Location</Label><Input value={location} onChange={e => setLocation(e.target.value)} placeholder="City, Country" /></div>
-              </div>
+            <Button variant="outline" onClick={signOutEverywhere}>Sign out everywhere</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2"><Sparkles className="h-5 w-5 text-gold" /> AI & integrations</CardTitle>
+            <CardDescription>Third-party services connected to your FinScope workspace.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex items-center justify-between border border-border rounded-md p-3">
               <div>
-                <Label>Currency</Label>
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={currency} onChange={e => setCurrency(e.target.value)}>
-                  {CURRENCIES.map(c => <option key={c}>{c}</option>)}
-                </select>
+                <p className="font-medium">FinScope AI (Gemini)</p>
+                <p className="text-xs text-muted-foreground">Used for statement extraction and the AI advisor chat.</p>
               </div>
-              <Button type="submit" variant="navy" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
-            </form>
+              <span className="inline-flex items-center gap-1 text-success text-xs"><CheckCircle2 className="h-3 w-3" /> Connected</span>
+            </div>
+            <div className="flex items-center justify-between border border-border rounded-md p-3">
+              <div>
+                <p className="font-medium">Google sign-in</p>
+                <p className="text-xs text-muted-foreground">OAuth provider for fast account access.</p>
+              </div>
+              <span className={`text-xs ${provider === "google" ? "text-success" : "text-muted-foreground"}`}>{provider === "google" ? "Active" : "Available"}</span>
+            </div>
+            <div className="flex items-center justify-between border border-border rounded-md p-3">
+              <div>
+                <p className="font-medium">Encrypted storage</p>
+                <p className="text-xs text-muted-foreground">Uploaded statements & logos are stored in private buckets.</p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-success text-xs"><CheckCircle2 className="h-3 w-3" /> Enabled</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-destructive/40">
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5" /> Danger zone</CardTitle>
+            <CardDescription>Permanently delete all FinScope data tied to your account. Your login remains.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="destructive" onClick={deleteAllData} disabled={busy}>Delete all my data</Button>
           </CardContent>
         </Card>
       </div>
