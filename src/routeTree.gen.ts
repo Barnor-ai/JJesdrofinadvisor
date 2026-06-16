@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedProfitabilityRouteImport } from './routes/_authenticated/profitability'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCompanyRouteImport } from './routes/_authenticated/company'
 import { Route as AuthenticatedAnalysesIndexRouteImport } from './routes/_authenticated/analyses.index'
@@ -49,6 +50,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfitabilityRoute =
+  AuthenticatedProfitabilityRouteImport.update({
+    id: '/profitability',
+    path: '/profitability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/profitability': typeof AuthenticatedProfitabilityRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -87,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/profitability': typeof AuthenticatedProfitabilityRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -100,6 +109,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/company': typeof AuthenticatedCompanyRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/profitability': typeof AuthenticatedProfitabilityRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/company'
     | '/dashboard'
+    | '/profitability'
     | '/settings'
     | '/upload'
     | '/api/chat'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/company'
     | '/dashboard'
+    | '/profitability'
     | '/settings'
     | '/upload'
     | '/api/chat'
@@ -136,6 +148,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/company'
     | '/_authenticated/dashboard'
+    | '/_authenticated/profitability'
     | '/_authenticated/settings'
     | '/_authenticated/upload'
     | '/api/chat'
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profitability': {
+      id: '/_authenticated/profitability'
+      path: '/profitability'
+      fullPath: '/profitability'
+      preLoaderRoute: typeof AuthenticatedProfitabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -228,6 +248,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCompanyRoute: typeof AuthenticatedCompanyRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedProfitabilityRoute: typeof AuthenticatedProfitabilityRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
   AuthenticatedAnalysesIdRoute: typeof AuthenticatedAnalysesIdRoute
@@ -237,6 +258,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCompanyRoute: AuthenticatedCompanyRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedProfitabilityRoute: AuthenticatedProfitabilityRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedUploadRoute: AuthenticatedUploadRoute,
   AuthenticatedAnalysesIdRoute: AuthenticatedAnalysesIdRoute,
