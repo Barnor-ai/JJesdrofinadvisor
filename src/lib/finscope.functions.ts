@@ -34,8 +34,15 @@ const ANALYSIS_SCHEMA = `{
     "debt_to_equity": number|null
   },
   "yoy_pl": [
-    { "line_item": string, "current": number|null, "previous": number|null, "change": number|null, "change_pct": number|null, "note": string }
+    { "line_item": string, "current": number|null, "previous": number|null, "change": number|null, "change_pct": number|null, "note": string, "narration": string }
   ],
+  "profitability_narration": {
+    "overview": string,
+    "revenue_drivers": string,
+    "cost_drivers": string,
+    "margin_commentary": string,
+    "key_takeaways": [string]
+  },
   "ratios": [ { "name": string, "value": string, "formula": string, "computation": string, "interpretation": string, "status": "good"|"warning"|"bad"|"neutral" } ],
   "trend_series": {
     "labels": [string],
