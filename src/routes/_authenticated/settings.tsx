@@ -152,7 +152,7 @@ function SettingsPage() {
         <Card className="border-destructive/40">
           <CardHeader>
             <CardTitle className="font-display flex items-center gap-2 text-destructive"><RotateCcw className="h-5 w-5" /> Reset FinScope</CardTitle>
-            <CardDescription>One click resets the entire app back to a blank slate — every company, analysis, chat thread and uploaded file is wiped. Your login is kept.</CardDescription>
+            <CardDescription>One click wipes every company profile, analysis and uploaded file. Your chat history, downloaded reports and login are kept.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="destructive" onClick={resetWorkspace} disabled={busy}>
