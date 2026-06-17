@@ -67,7 +67,8 @@ const ANALYSIS_SCHEMA = `{
 }
 
 REQUIREMENTS:
-- yoy_pl MUST cover at minimum: Revenue, Cost of Goods Sold, Gross Profit, Operating Expenses, Operating Income, Other Income/Expense, Tax, Net Income / (Loss). Break out OpEx sub-lines (Salaries, Marketing, R&D, G&A, Depreciation) when present.
+- yoy_pl MUST cover at minimum: Revenue, Cost of Goods Sold, Gross Profit, Operating Expenses, Operating Income, Other Income/Expense, Tax, Net Income / (Loss). Break out OpEx sub-lines (Salaries, Marketing, R&D, G&A, Depreciation) when present. Each line MUST include a 1-2 sentence "narration" that explains WHY the line moved (mix shift, price, volume, one-offs, FX, headcount, etc.) in plain English — never leave narration empty.
+- profitability_narration MUST be populated with substantive paragraphs (3-5 sentences each) explaining the reasons behind the revenue and margin movement, not just restating the numbers.
 - change = current - previous (null if either is null). change_pct = ((current-previous)/abs(previous))*100, rounded to 1 decimal, or null.
 - Every ratio MUST include both the textbook formula AND the actual computation with the numbers used (e.g. formula: "Current Assets / Current Liabilities", computation: "1,250,000 / 800,000 = 1.56").
 - trend_series provides at least 2 data points (prior + current) and more if multi-period data is available.
