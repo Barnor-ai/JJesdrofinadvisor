@@ -8,6 +8,7 @@ export type YoyRow = {
   change: number | null;
   change_pct: number | null;
   note?: string;
+  narration?: string;
 };
 
 function fmt(n: number | null, currency = "USD") {
