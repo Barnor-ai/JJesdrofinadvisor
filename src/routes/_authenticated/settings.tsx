@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, KeyRound, LogOut, Trash2, Sparkles, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, KeyRound, LogOut, Trash2, Sparkles, CheckCircle2, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — FinScope" }] }),
