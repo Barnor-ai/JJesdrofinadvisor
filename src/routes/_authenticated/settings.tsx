@@ -49,17 +49,33 @@ function SettingsPage() {
     navigate({ to: "/auth", replace: true });
   }
 
-  async function deleteAllData() {
-    if (!confirm("Permanently delete all your companies, analyses and chats? This cannot be undone.")) return;
+  async function resetWorkspace() {
+    if (!confirm("Reset FinScope to zero? This permanently deletes all your companies, analyses, chats and uploaded files. Your login stays.")) return;
     setBusy(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setBusy(false); return; }
-    await supabase.from("chat_messages").delete().eq("user_id", user.id);
-    await supabase.from("analyses").delete().eq("user_id", user.id);
-    await supabase.from("companies").delete().eq("user_id", user.id);
-    setBusy(false);
-    toast.success("All your FinScope data has been deleted");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setBusy(false); return; }
+      await supabase.from("chat_messages").delete().eq("user_id", user.id);
+      await supabase.from("analyses").delete().eq("user_id", user.id);
+      await supabase.from("companies").delete().eq("user_id", user.id);
+      // Best-effort: clear uploaded files in private buckets
+      for (const bucket of ["statements", "company-logos"] as const) {
+        const { data: list } = await supabase.storage.from(bucket).list(user.id, { limit: 1000 });
+        if (list && list.length) {
+          await supabase.storage.from(bucket).remove(list.map(f => `${user.id}/${f.name}`));
+        }
+      }
+      qc.clear();
+      toast.success("FinScope has been reset to zero");
+      navigate({ to: "/dashboard", replace: true });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setBusy(false);
+    }
   }
+
+  const deleteAllData = resetWorkspace;
 
   return (
     <AppShell>
