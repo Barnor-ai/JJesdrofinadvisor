@@ -71,7 +71,7 @@ export function YoyTable({ rows, currency = "USD", title = "Year-over-Year Profi
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
           {rows.length === 0 && (
