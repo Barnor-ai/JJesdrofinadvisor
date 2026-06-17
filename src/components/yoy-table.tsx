@@ -55,8 +55,8 @@ export function YoyTable({ rows, currency = "USD", title = "Year-over-Year Profi
             const tone = goodChange ? "text-success" : badChange ? "text-destructive" : "text-foreground";
             const ofRev = totalRevenue && r.current ? `${((r.current / totalRevenue) * 100).toFixed(1)}%` : "—";
             return (
-              <>
-                <tr key={i} className="border-b border-border/40">
+              <Fragment key={i}>
+                <tr className="border-b border-border/40">
                   <td className="py-2 font-medium">{r.line_item}</td>
                   <td className="py-2 text-right font-display">{fmt(r.current, currency)}</td>
                   <td className="py-2 text-right text-muted-foreground">{fmt(r.previous, currency)}</td>
