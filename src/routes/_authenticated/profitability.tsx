@@ -62,7 +62,56 @@ function ProfitabilityPage() {
         ) : yoy.length === 0 ? (
           <Card className="p-10 text-center text-muted-foreground">No year-over-year breakdown available for this report.</Card>
         ) : (
-          <YoyTable rows={yoy} currency={currency} />
+          <div className="space-y-6">
+            <YoyTable rows={yoy} currency={currency} />
+
+            <Card className="p-6">
+              <h3 className="font-display text-2xl mb-1">Why the numbers moved</h3>
+              <p className="text-xs text-muted-foreground mb-4">AI-generated narrative explaining the drivers behind the period-over-period changes.</p>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                {narration.overview && (
+                  <div className="md:col-span-2 rounded-md border border-border p-4 bg-muted/30">
+                    <p className="text-xs uppercase tracking-wider text-gold mb-2">Overview</p>
+                    <p className="leading-relaxed">{narration.overview}</p>
+                  </div>
+                )}
+                {narration.revenue_drivers && (
+                  <div className="rounded-md border border-border p-4">
+                    <p className="text-xs uppercase tracking-wider text-gold mb-2">Revenue drivers</p>
+                    <p className="leading-relaxed">{narration.revenue_drivers}</p>
+                  </div>
+                )}
+                {narration.cost_drivers && (
+                  <div className="rounded-md border border-border p-4">
+                    <p className="text-xs uppercase tracking-wider text-gold mb-2">Cost drivers</p>
+                    <p className="leading-relaxed">{narration.cost_drivers}</p>
+                  </div>
+                )}
+                {narration.margin_commentary && (
+                  <div className="md:col-span-2 rounded-md border border-border p-4">
+                    <p className="text-xs uppercase tracking-wider text-gold mb-2">Margin commentary</p>
+                    <p className="leading-relaxed">{narration.margin_commentary}</p>
+                  </div>
+                )}
+                {narration.key_takeaways && narration.key_takeaways.length > 0 && (
+                  <div className="md:col-span-2 rounded-md border border-border p-4">
+                    <p className="text-xs uppercase tracking-wider text-gold mb-2">Key takeaways</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {narration.key_takeaways.map((t, i) => <li key={i}>{t}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {!narration.overview && !narration.revenue_drivers && !narration.cost_drivers && !narration.margin_commentary && narration.fallback && (
+                  <div className="md:col-span-2 rounded-md border border-border p-4">
+                    <p className="leading-relaxed whitespace-pre-wrap">{narration.fallback}</p>
+                  </div>
+                )}
+                {!narration.overview && !narration.revenue_drivers && !narration.cost_drivers && !narration.margin_commentary && !narration.fallback && (
+                  <p className="md:col-span-2 text-muted-foreground text-center">No narrative available for this report. Re-run the analysis to generate one.</p>
+                )}
+              </div>
+            </Card>
+          </div>
         )}
       </div>
     </AppShell>
