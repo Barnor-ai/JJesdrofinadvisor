@@ -50,12 +50,14 @@ function SettingsPage() {
   }
 
   async function resetWorkspace() {
-    if (!confirm("Reset FinScope to zero? This permanently deletes all your companies, analyses, chats and uploaded files. Your login stays.")) return;
+    if (!confirm("Reset FinScope? This permanently deletes your company profiles, analyses and uploaded files. Your chat history, login and previously downloaded reports are kept.")) return;
     setBusy(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setBusy(false); return; }
-      await supabase.from("chat_messages").delete().eq("user_id", user.id);
+      // Detach chat messages from analyses we're about to delete (preserve threads)
+      await supabase.from("chat_messages").update({ analysis_id: null as never }).eq("user_id", user.id);
+      // Wipe analyses and companies (chat_messages intentionally preserved)
       await supabase.from("analyses").delete().eq("user_id", user.id);
       await supabase.from("companies").delete().eq("user_id", user.id);
       // Best-effort: clear uploaded files in private buckets
@@ -66,7 +68,7 @@ function SettingsPage() {
         }
       }
       qc.clear();
-      toast.success("FinScope has been reset to zero");
+      toast.success("FinScope reset — chat history preserved");
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Reset failed");
@@ -150,7 +152,7 @@ function SettingsPage() {
         <Card className="border-destructive/40">
           <CardHeader>
             <CardTitle className="font-display flex items-center gap-2 text-destructive"><RotateCcw className="h-5 w-5" /> Reset FinScope</CardTitle>
-            <CardDescription>One click resets the entire app back to a blank slate — every company, analysis, chat thread and uploaded file is wiped. Your login is kept.</CardDescription>
+            <CardDescription>One click wipes every company profile, analysis and uploaded file. Your chat history, downloaded reports and login are kept.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="destructive" onClick={resetWorkspace} disabled={busy}>
