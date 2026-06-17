@@ -149,11 +149,13 @@ function SettingsPage() {
 
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="font-display flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5" /> Danger zone</CardTitle>
-            <CardDescription>Permanently delete all FinScope data tied to your account. Your login remains.</CardDescription>
+            <CardTitle className="font-display flex items-center gap-2 text-destructive"><RotateCcw className="h-5 w-5" /> Reset FinScope</CardTitle>
+            <CardDescription>One click resets the entire app back to a blank slate — every company, analysis, chat thread and uploaded file is wiped. Your login is kept.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" onClick={deleteAllData} disabled={busy}>Delete all my data</Button>
+            <Button variant="destructive" onClick={resetWorkspace} disabled={busy}>
+              <RotateCcw className="h-4 w-4" /> Reset app to zero
+            </Button>
           </CardContent>
         </Card>
       </div>
