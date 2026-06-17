@@ -52,7 +52,7 @@
 :root {
   --radius: 0.5rem;
 
-  /* Private banking palette: deep navy + gold on ivory */
+  /* FinScope palette: deep navy + gold on ivory */
   --background: oklch(0.975 0.012 85);          /* ivory #F5F1E8 */
   --foreground: oklch(0.22 0.05 260);           /* deep navy text */
 

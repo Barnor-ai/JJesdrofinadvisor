@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, KeyRound, LogOut, Trash2, Sparkles, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, KeyRound, LogOut, Sparkles, CheckCircle2, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — FinScope" }] }),
@@ -49,17 +49,33 @@ function SettingsPage() {
     navigate({ to: "/auth", replace: true });
   }
 
-  async function deleteAllData() {
-    if (!confirm("Permanently delete all your companies, analyses and chats? This cannot be undone.")) return;
+  async function resetWorkspace() {
+    if (!confirm("Reset FinScope to zero? This permanently deletes all your companies, analyses, chats and uploaded files. Your login stays.")) return;
     setBusy(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setBusy(false); return; }
-    await supabase.from("chat_messages").delete().eq("user_id", user.id);
-    await supabase.from("analyses").delete().eq("user_id", user.id);
-    await supabase.from("companies").delete().eq("user_id", user.id);
-    setBusy(false);
-    toast.success("All your FinScope data has been deleted");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setBusy(false); return; }
+      await supabase.from("chat_messages").delete().eq("user_id", user.id);
+      await supabase.from("analyses").delete().eq("user_id", user.id);
+      await supabase.from("companies").delete().eq("user_id", user.id);
+      // Best-effort: clear uploaded files in private buckets
+      for (const bucket of ["statements", "company-logos"] as const) {
+        const { data: list } = await supabase.storage.from(bucket).list(user.id, { limit: 1000 });
+        if (list && list.length) {
+          await supabase.storage.from(bucket).remove(list.map(f => `${user.id}/${f.name}`));
+        }
+      }
+      qc.clear();
+      toast.success("FinScope has been reset to zero");
+      navigate({ to: "/dashboard", replace: true });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setBusy(false);
+    }
   }
+
+  
 
   return (
     <AppShell>
@@ -133,11 +149,13 @@ function SettingsPage() {
 
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="font-display flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5" /> Danger zone</CardTitle>
-            <CardDescription>Permanently delete all FinScope data tied to your account. Your login remains.</CardDescription>
+            <CardTitle className="font-display flex items-center gap-2 text-destructive"><RotateCcw className="h-5 w-5" /> Reset FinScope</CardTitle>
+            <CardDescription>One click resets the entire app back to a blank slate — every company, analysis, chat thread and uploaded file is wiped. Your login is kept.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" onClick={deleteAllData} disabled={busy}>Delete all my data</Button>
+            <Button variant="destructive" onClick={resetWorkspace} disabled={busy}>
+              <RotateCcw className="h-4 w-4" /> Reset app to zero
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -62,7 +62,7 @@ function AuthPage() {
           <span className="font-display text-2xl">FinScope</span>
         </Link>
         <div className="relative">
-          <p className="text-xs tracking-[0.4em] text-gold uppercase mb-4">Private banking-grade</p>
+          <p className="text-xs tracking-[0.4em] text-gold uppercase mb-4">AI Financial Analyst</p>
           <h2 className="font-display text-4xl leading-tight">Financial clarity, on demand.</h2>
           <p className="mt-4 text-navy-foreground/70 max-w-md">Upload your statements. Receive ratios, a risk score, red flags and strategic advice within minutes.</p>
         </div>
