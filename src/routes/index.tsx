@@ -47,7 +47,7 @@ function Landing() {
         <div className="absolute inset-0 opacity-[0.06] [background:radial-gradient(circle_at_20%_20%,_var(--color-gold),transparent_40%),radial-gradient(circle_at_80%_80%,_var(--color-gold),transparent_50%)]" />
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32 relative">
           <div className="max-w-3xl">
-            <p className="text-xs tracking-[0.4em] text-gold uppercase mb-6">Private Banking-grade AI</p>
+            <p className="text-xs tracking-[0.4em] text-gold uppercase mb-6">AI Financial Analyst</p>
             <h1 className="font-display text-5xl md:text-7xl leading-[1.05]">
               Your financial statements,<br /> read by a <span className="text-gradient-gold">senior consultant</span>.
             </h1>
