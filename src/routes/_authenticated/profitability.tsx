@@ -28,6 +28,14 @@ function ProfitabilityPage() {
     return a.yoy_pl ?? [];
   }, [current]);
 
+  const narration = useMemo(() => {
+    const a = (current?.analysis ?? {}) as {
+      profitability_narration?: { overview?: string; revenue_drivers?: string; cost_drivers?: string; margin_commentary?: string; key_takeaways?: string[] };
+      profitability_analysis?: string;
+    };
+    return { ...(a.profitability_narration ?? {}), fallback: a.profitability_analysis };
+  }, [current]);
+
   const currency = (current?.companies as { currency?: string } | null)?.currency ?? "USD";
 
   return (
