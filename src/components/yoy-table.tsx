@@ -55,14 +55,23 @@ export function YoyTable({ rows, currency = "USD", title = "Year-over-Year Profi
             const tone = goodChange ? "text-success" : badChange ? "text-destructive" : "text-foreground";
             const ofRev = totalRevenue && r.current ? `${((r.current / totalRevenue) * 100).toFixed(1)}%` : "—";
             return (
-              <tr key={i} className="border-b border-border/40">
-                <td className="py-2 font-medium">{r.line_item}</td>
-                <td className="py-2 text-right font-display">{fmt(r.current, currency)}</td>
-                <td className="py-2 text-right text-muted-foreground">{fmt(r.previous, currency)}</td>
-                <td className={`py-2 text-right ${tone}`}>{fmt(r.change, currency)}</td>
-                <td className={`py-2 text-right ${tone}`}>{pct(r.change_pct)}</td>
-                <td className="py-2 text-right text-muted-foreground">{ofRev}</td>
-              </tr>
+              <>
+                <tr key={i} className="border-b border-border/40">
+                  <td className="py-2 font-medium">{r.line_item}</td>
+                  <td className="py-2 text-right font-display">{fmt(r.current, currency)}</td>
+                  <td className="py-2 text-right text-muted-foreground">{fmt(r.previous, currency)}</td>
+                  <td className={`py-2 text-right ${tone}`}>{fmt(r.change, currency)}</td>
+                  <td className={`py-2 text-right ${tone}`}>{pct(r.change_pct)}</td>
+                  <td className="py-2 text-right text-muted-foreground">{ofRev}</td>
+                </tr>
+                {(r.narration || r.note) && (
+                  <tr key={`${i}-n`} className="border-b border-border/40 bg-muted/30">
+                    <td colSpan={6} className="py-2 px-3 text-xs text-muted-foreground italic">
+                      <span className="font-semibold not-italic text-foreground/70">Why: </span>{r.narration || r.note}
+                    </td>
+                  </tr>
+                )}
+              </>
             );
           })}
           {rows.length === 0 && (
