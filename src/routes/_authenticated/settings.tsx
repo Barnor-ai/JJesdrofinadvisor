@@ -75,7 +75,7 @@ function SettingsPage() {
     }
   }
 
-  const deleteAllData = resetWorkspace;
+  
 
   return (
     <AppShell>
