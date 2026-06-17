@@ -231,7 +231,15 @@ function ChatPanel({ analysisId, analysisJSON }: { analysisId: string; analysisJ
 
   const { messages, sendMessage, status } = useChat({
     id: analysisId,
-    transport: new DefaultChatTransport({ api: "/api/chat", body: { analysisContext: ctx } }),
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      body: { analysisContext: ctx },
+      headers: async (): Promise<Record<string, string>> => {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      },
+    }),
     onError: (e) => toast.error(e.message),
   });
 
