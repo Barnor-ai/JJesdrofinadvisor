@@ -11,21 +11,35 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Sign in — FinScope" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : "",
+  }),
   component: AuthPage,
 });
 
+// Only accept same-origin relative paths — never an absolute URL.
+function safeNext(next: string, fallback: string) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+  return next;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
+  const target = safeNext(next, "/dashboard");
+  const absoluteTarget =
+    typeof window !== "undefined" ? window.location.origin + target : target;
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/dashboard" });
+      if (data.user) window.location.replace(target);
     });
-  }, [navigate]);
+  }, [target]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +47,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    navigate({ to: "/dashboard" });
+    window.location.replace(target);
   }
 
   async function signUp(e: React.FormEvent) {
@@ -41,7 +55,7 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin + "/dashboard", data: { full_name: fullName } },
+      options: { emailRedirectTo: absoluteTarget, data: { full_name: fullName } },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -49,9 +63,12 @@ function AuthPage() {
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/dashboard" });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: absoluteTarget });
     if (r.error) toast.error(String(r.error));
   }
+
+  // suppress unused import warning
+  void navigate;
 
   return (
     <div className="min-h-screen flex bg-background">
