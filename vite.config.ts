@@ -7,14 +7,20 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
+// Netlify sets NITRO_PRESET=netlify via netlify.toml. Locally / other hosts fall
+// back to the default cloudflare-module preset unless NITRO_PRESET overrides.
+const nitroPreset = process.env.NITRO_PRESET;
+const isCloudflare = !nitroPreset || nitroPreset.startsWith("cloudflare");
+
 export default defineConfig({
-  tanstackStart: {
-    server: { entry: "server" },
-  },
+  tanstackStart: isCloudflare ? { server: { entry: "server" } } : {},
+  nitro: nitroPreset ? { preset: nitroPreset } : undefined,
   vite: {
     plugins: [mcpPlugin()],
     build: {
       rollupOptions: {
+        // mcp-js dynamically imports cloudflare:workers; mark external so
+        // non-Cloudflare presets (Netlify, Node) don't try to bundle it.
         external: ["cloudflare:workers"],
       },
     },

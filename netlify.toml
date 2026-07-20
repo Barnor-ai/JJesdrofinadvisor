@@ -1,0 +1,13 @@
+[build]
+  command = "bun run build"
+  publish = "dist/public"
+
+[build.environment]
+  NITRO_PRESET = "netlify"
+  NODE_VERSION = "20"
+  # Publishable Supabase URL/key are embedded in the client bundle by design;
+  # exclude them from Netlify's secrets scanner to avoid false positives.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_PROJECT_ID,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,SUPABASE_PROJECT_ID"
+
+# Nitro's Netlify preset emits functions to .netlify/functions-internal
+# and wires the catch-all redirect automatically via _redirects.
