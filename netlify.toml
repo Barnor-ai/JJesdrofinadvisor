@@ -1,0 +1,10 @@
+[build]
+  command = "bun run build"
+  publish = "dist/public"
+
+[build.environment]
+  NITRO_PRESET = "netlify"
+  NODE_VERSION = "20"
+
+# Nitro's Netlify preset emits functions to .netlify/functions-internal
+# and wires the catch-all redirect automatically via _redirects.
