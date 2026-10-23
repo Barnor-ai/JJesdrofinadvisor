@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { safeNextPath } from '@/lib/security-rules';
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -33,13 +34,13 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
-  const target = safeNext(next, "/dashboard");
+  const target = safeNextPath(next);
   const absoluteTarget =
     typeof window !== "undefined" ? window.location.origin + target : target;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) window.location.replace(target);
+      if (data.user) navigate({ to: target, replace: true });
     });
   }, [target]);
 
@@ -49,24 +50,34 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    window.location.replace(target);
+    navigate({ to: target, replace: true });
   }
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: absoluteTarget, data: { full_name: fullName } },
+      options: { emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(target)}`, data: { full_name: fullName } },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created. You can sign in now.");
+    if (data.session) navigate({ to: target, replace: true });
+    else toast.success('Check your email to confirm your account before signing in.');
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: absoluteTarget });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(target)}` });
     if (r.error) toast.error(String(r.error));
+  }
+
+  async function forgotPassword() {
+    if (!email) return toast.error('Enter your email first.');
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success('If an account matches, a password reset email will be sent.');
   }
 
   // suppress unused import warning
@@ -106,6 +117,7 @@ function AuthPage() {
                   <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
                   <div><Label>Password</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
                   <Button type="submit" variant="navy" className="w-full" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+                  <Button type="button" variant="link" className="w-full" disabled={loading} onClick={forgotPassword}>Forgot password?</Button>
                 </form>
               </TabsContent>
               <TabsContent value="signup">
