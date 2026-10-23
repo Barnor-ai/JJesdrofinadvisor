@@ -6,6 +6,8 @@ export const getMembership = createServerFn({ method: 'GET' })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const session = await supabase.rpc('session_active');
+    if (session.error || !session.data) throw new Error('Session expired. Sign in again.');
     const since = new Date(); since.setUTCDate(1); since.setUTCHours(0, 0, 0, 0);
     const results = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', userId),
@@ -27,6 +29,8 @@ export const savePlan = createServerFn({ method: 'POST' })
     active: z.boolean(),
   }).parse(d))
   .handler(async ({ context, data }) => {
+    const session = await context.supabase.rpc('session_active');
+    if (session.error || !session.data) throw new Error('Session expired. Sign in again.');
     const { data: allowed, error } = await context.supabase.rpc('has_role', { _user_id: context.userId, _role: 'super_admin' });
     if (error || !allowed) throw new Error('Only a Super Administrator can configure plans.');
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
@@ -35,4 +39,34 @@ export const savePlan = createServerFn({ method: 'POST' })
     const audit = await supabaseAdmin.from('admin_audit').insert({ actor_id: context.userId, action: 'configure_plan', target_id: data.id });
     if (audit.error) throw new Error('Plan saved, but audit logging failed.');
     return { ok: true };
+  });
+
+export const resetOwnInformation = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ confirmation: z.literal('RESET MY UPLOADED INFORMATION') }).parse(d))
+  .handler(async ({ context }) => {
+    const allowed = await context.supabase.rpc('reset_own_information');
+    if (allowed.error) throw new Error(allowed.error.message);
+    let removed = 0;
+    for (const bucket of ['statements', 'company-logos']) {
+      const paths: string[] = [];
+      const walk = async (folder: string) => {
+        for (let offset = 0; ; offset += 100) {
+          const list = await context.supabase.storage.from(bucket).list(folder, { limit: 100, offset });
+          if (list.error) throw new Error('Analysis data reset and reports preserved; uploaded-file cleanup is incomplete. Retry to finish.');
+          for (const entry of list.data ?? []) {
+            const path = `${folder}/${entry.name}`;
+            if (!entry.id) await walk(path); else paths.push(path);
+          }
+          if ((list.data?.length ?? 0) < 100) break;
+        }
+      };
+      await walk(context.userId);
+      for (let i = 0; i < paths.length; i += 100) {
+        const result = await context.supabase.storage.from(bucket).remove(paths.slice(i, i + 100));
+        if (result.error) throw new Error('Analysis data reset and reports preserved; file cleanup is incomplete. Retry to finish.');
+        removed += result.data.length;
+      }
+    }
+    return { removed };
   });

@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { SessionProtection } from '@/components/session-protection';
 
 const nav = [
   { to: "/company", label: "Company profile", icon: Building2 },
@@ -31,6 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-background">
+      <SessionProtection />
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
         <Link to="/dashboard" className="flex items-center gap-2 p-6 border-b border-sidebar-border">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-gradient-gold text-navy font-display text-lg font-bold">F</div>

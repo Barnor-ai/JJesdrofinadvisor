@@ -31,6 +31,8 @@ export const Route = createFileRoute("/api/chat")({
         if (claimsErr || !claimsData?.claims?.sub) {
           return new Response("Unauthorized", { status: 401 });
         }
+        const session = await sb.rpc('session_active');
+        if (session.error || !session.data) return new Response('Session expired', { status: 401 });
 
         // --- Input validation + size limits ---
         let body: { messages?: UIMessage[]; analysisId?: string };

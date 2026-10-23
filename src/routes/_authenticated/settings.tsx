@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, KeyRound, LogOut, Sparkles, CheckCircle2, RotateCcw } from "lucide-react";
 import { passwordError } from '@/lib/security-rules';
-import { getMembership } from '@/lib/saas.functions';
+import { getMembership, resetOwnInformation } from '@/lib/saas.functions';
 import { useServerFn } from '@tanstack/react-start';
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -29,6 +29,7 @@ function SettingsPage() {
   const [confirmPwd, setConfirmPwd] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const membership = useServerFn(getMembership);
+  const reset = useServerFn(resetOwnInformation);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -66,22 +67,9 @@ function SettingsPage() {
     if (!confirm("Reset FinScope? This permanently deletes your company profiles, analyses and uploaded files. Your chat history, login and previously downloaded reports are kept.")) return;
     setBusy(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setBusy(false); return; }
-      // Detach chat messages from analyses we're about to delete (preserve threads)
-      await supabase.from("chat_messages").update({ analysis_id: null as never }).eq("user_id", user.id);
-      // Wipe analyses and companies (chat_messages intentionally preserved)
-      await supabase.from("analyses").delete().eq("user_id", user.id);
-      await supabase.from("companies").delete().eq("user_id", user.id);
-      // Best-effort: clear uploaded files in private buckets
-      for (const bucket of ["statements", "company-logos"] as const) {
-        const { data: list } = await supabase.storage.from(bucket).list(user.id, { limit: 1000 });
-        if (list && list.length) {
-          await supabase.storage.from(bucket).remove(list.map(f => `${user.id}/${f.name}`));
-        }
-      }
+      await reset({ data: { confirmation: 'RESET MY UPLOADED INFORMATION' } });
       qc.clear();
-      toast.success("FinScope reset — chat history preserved");
+      toast.success('Uploaded information reset — reports, chat, login and membership preserved');
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Reset failed");

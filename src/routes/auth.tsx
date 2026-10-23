@@ -20,12 +20,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-// Only accept same-origin relative paths — never an absolute URL.
-function safeNext(next: string | undefined, fallback: string) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
-  return next;
-}
-
 function AuthPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
@@ -35,8 +29,6 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
 
   const target = safeNextPath(next);
-  const absoluteTarget =
-    typeof window !== "undefined" ? window.location.origin + target : target;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -79,9 +71,6 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     toast.success('If an account matches, a password reset email will be sent.');
   }
-
-  // suppress unused import warning
-  void navigate;
 
   return (
     <div className="min-h-screen flex bg-background">

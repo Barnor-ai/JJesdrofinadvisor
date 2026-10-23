@@ -35,7 +35,9 @@ function AnalysisPage() {
     queryKey: ["analysis", id],
     queryFn: async (): Promise<Analysis | null> => {
       const { data } = await supabase.from("analyses").select("*, companies(name,industry,location,currency)").eq("id", id).single();
-      return data as Analysis | null;
+      if (data) return data as Analysis;
+      const { data: saved } = await supabase.from('saved_reports').select('*').eq('id', id).maybeSingle();
+      return saved ? { ...saved, status: 'completed', error_message: null, companies: saved.company as Analysis['companies'], analysis: saved.analysis as Record<string, unknown> | null } : null;
     },
     refetchInterval: (q) => {
       const s = (q.state.data as Analysis | null)?.status;
