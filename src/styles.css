@@ -50,6 +50,12 @@
 }
 
 :root {
+  /* Stable print palette, independent of the screen's light/dark theme. */
+  --report-paper: #ffffff;
+  --report-chart-blue: #3b82f6;
+  --report-chart-green: #16a34a;
+  --report-chart-red: #dc2626;
+  --report-chart-gray: #64748b;
   --radius: 0.5rem;
 
   /* FinScope palette: deep navy + gold on ivory */
