@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useSuspenseQuery, queryOptions } from '@tanstack/react-query';
 import { getMembership } from '@/lib/saas.functions';
 import { pageMetadata } from '@/lib/page-metadata';
@@ -11,6 +11,7 @@ export const membershipOptions = queryOptions({ queryKey: ['membership'], queryF
 export const Route = createFileRoute('/_authenticated/subscription')({
   head: () => pageMetadata('Membership & billing — FinScope', 'Review your FinScope membership, monthly allowances and subscription status.'),
   loader: ({ context }) => context.queryClient.ensureQueryData(membershipOptions),
+  errorComponent: () => <AppShell><section className="p-6 md:p-10 space-y-4"><h1 className="font-display text-3xl">Membership unavailable</h1><p className="text-muted-foreground">Your session could not be verified. Sign in again to view membership details.</p><Button asChild variant="navy"><Link to="/auth">Sign in again</Link></Button></section></AppShell>,
   component: SubscriptionPage,
 });
 const tiers = [

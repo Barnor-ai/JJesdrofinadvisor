@@ -7,7 +7,8 @@ export const getMembership = createServerFn({ method: 'GET' })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const session = await supabase.rpc('session_active');
-    if (session.error || !session.data) throw new Error('Session expired. Sign in again.');
+    if (session.error) throw new Error('Session verification unavailable. Please try again.');
+    if (!session.data) throw new Error('Session expired. Sign in again.');
     const since = new Date(); since.setUTCDate(1); since.setUTCHours(0, 0, 0, 0);
     const results = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', userId),
