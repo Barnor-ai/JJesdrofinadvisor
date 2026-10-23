@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { toast } from "sonner";
 import { INDUSTRIES, LOCATIONS, CURRENCIES } from "@/lib/finscope-constants";
 
 export const Route = createFileRoute("/_authenticated/company")({
-  head: () => ({ meta: [{ title: "Company profile — FinScope" }] }),
+  head: () => pageMetadata("Company profile — FinScope", "Manage your FinScope company details, logo and reporting currency."),
   component: CompanyPage,
 });
 

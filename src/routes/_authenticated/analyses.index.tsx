@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
@@ -9,7 +10,7 @@ import { format } from "date-fns";
 import { Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/analyses/")({
-  head: () => ({ meta: [{ title: "Reports — FinScope" }] }),
+  head: () => pageMetadata("Reports — FinScope", "Browse your FinScope financial analysis reports by reporting period."),
   component: List,
 });
 

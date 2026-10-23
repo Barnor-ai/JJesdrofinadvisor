@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -9,7 +10,7 @@ import { Upload, TrendingUp } from "lucide-react";
 import { YoyTable, type YoyRow } from "@/components/yoy-table";
 
 export const Route = createFileRoute("/_authenticated/profitability")({
-  head: () => ({ meta: [{ title: "Profitability — FinScope" }] }),
+  head: () => pageMetadata("Profitability — FinScope", "Compare revenue and profitability across financial periods in FinScope."),
   component: ProfitabilityPage,
 });
 

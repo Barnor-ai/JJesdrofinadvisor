@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, KeyRound, LogOut, Sparkles, CheckCircle2, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — FinScope" }] }),
+  head: () => pageMetadata("Settings — FinScope", "Manage your FinScope account security and connected services."),
   component: SettingsPage,
 });
 

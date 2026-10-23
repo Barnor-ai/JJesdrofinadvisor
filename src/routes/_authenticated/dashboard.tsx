@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -10,7 +11,7 @@ import { format } from "date-fns";
 import { RevenueVsNetIncomeChart, ExpenseBreakdownChart, TrendChart, RiskTrendChart } from "@/components/dashboard-charts";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — FinScope" }] }),
+  head: () => pageMetadata("Dashboard — FinScope", "Your FinScope financial overview, key metrics and financial trends."),
   component: Dashboard,
 });
 
