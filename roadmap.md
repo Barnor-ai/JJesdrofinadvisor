@@ -3,3 +3,5 @@
 - [x] Update login label to Financial Analyst tool.
 - [x] Verify chart data and exported documents.
 - [x] Apply required dependency security fixes.
+- [ ] Inspect SaaS architecture, hosted data controls, reports, authentication and Netlify compatibility; present the incremental plan.
+- [ ] Implement approved SaaS stages only after plan approval; payments and any migration require separate confirmation.
