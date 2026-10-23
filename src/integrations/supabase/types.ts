@@ -100,6 +100,27 @@ export type Database = {
           },
         ]
       }
+      app_sessions: {
+        Row: {
+          last_active_at: string
+          revoked: boolean
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          last_active_at?: string
+          revoked?: boolean
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          last_active_at?: string
+          revoked?: boolean
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           enforce_subscriptions: boolean
@@ -210,6 +231,39 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      saved_reports: {
+        Row: {
+          analysis: Json | null
+          company: Json | null
+          created_at: string
+          id: string
+          period_label: string | null
+          risk_score: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json | null
+          company?: Json | null
+          created_at?: string
+          id: string
+          period_label?: string | null
+          risk_score?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          analysis?: Json | null
+          company?: Json | null
+          created_at?: string
+          id?: string
+          period_label?: string | null
+          risk_score?: number | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -343,6 +397,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      configure_security: { Args: { _minutes: number }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -350,6 +405,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      reset_own_information: { Args: never; Returns: undefined }
+      session_active: { Args: never; Returns: boolean }
+      touch_session: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "super_admin" | "admin" | "user"

@@ -8,6 +8,13 @@
       "when": 1792786814969,
       "tag": "0000_saas_foundation_roles_plans_ownership",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792786957396,
+      "tag": "0001_session_protection_and_saved_reports",
+      "breakpoints": true
     }
   ]
 }
