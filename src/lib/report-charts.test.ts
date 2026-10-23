@@ -1,5 +1,11 @@
-import { test, expect } from "bun:test";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 import { buildReportCharts } from "./report-charts";
+
+const expect = (actual: unknown) => ({
+  toEqual: (expected: unknown) => assert.deepEqual(actual, expected),
+  toBe: (expected: unknown) => assert.equal(actual, expected),
+});
 
 test("missing financial data produces no charts", () => {
   expect(buildReportCharts({})).toEqual([]);
