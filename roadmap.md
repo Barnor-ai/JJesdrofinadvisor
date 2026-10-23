@@ -4,4 +4,9 @@
 - [x] Verify chart data and exported documents.
 - [x] Apply required dependency security fixes.
 - [x] Inspect SaaS architecture, hosted data controls, reports, authentication and Netlify compatibility; prepare the incremental plan for review.
-- [ ] Implement approved SaaS stages only after plan approval; payments and any migration require separate confirmation.
+- [x] Add membership foundation, owner-checked document access, password controls, mobile navigation and safeguarded reset.
+- [ ] Validate session expiry and membership with a standard sign-in session; managed test tokens have no session identifier and are correctly rejected.
+- [ ] Complete administrator controls after first Super Administrator identity is confirmed.
+- [ ] Complete quotas and translation after administrator-configured entitlements and limits are supplied.
+- [ ] Enable payments after separate confirmation of seller country, payment methods and prices.
+- [ ] Verify live Netlify deployment after the supported hosted-services connection is confirmed.

@@ -35,7 +35,9 @@ function AnalysisPage() {
     queryKey: ["analysis", id],
     queryFn: async (): Promise<Analysis | null> => {
       const { data } = await supabase.from("analyses").select("*, companies(name,industry,location,currency)").eq("id", id).single();
-      return data as Analysis | null;
+      if (data) return data as Analysis;
+      const { data: saved } = await supabase.from('saved_reports').select('*').eq('id', id).maybeSingle();
+      return saved ? { ...saved, status: 'completed', error_message: null, companies: saved.company as Analysis['companies'], analysis: saved.analysis as Record<string, unknown> | null } : null;
     },
     refetchInterval: (q) => {
       const s = (q.state.data as Analysis | null)?.status;
@@ -92,7 +94,7 @@ function ReportView({ analysis }: { analysis: Analysis }) {
             <p className="text-xs tracking-[0.3em] text-gold uppercase">{analysis.companies?.name ?? "Report"} · {analysis.period_label}</p>
             <h1 className="font-display text-4xl mt-2">{analysis.title}</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => exportAnalysisPDF(analysis, a)}><FileDown className="h-4 w-4" /> PDF</Button>
             <Button variant="outline" size="sm" onClick={() => exportAnalysisExcel(analysis, a)}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
             <Button variant="outline" size="sm" onClick={() => exportAnalysisWord(analysis, a)}><FileText className="h-4 w-4" /> Word</Button>
@@ -234,7 +236,7 @@ function ChatPanel({ analysisId, analysisJSON }: { analysisId: string; analysisJ
     id: analysisId,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      body: { analysisContext: ctx },
+      body: { analysisId },
       headers: async (): Promise<Record<string, string>> => {
         const { data } = await supabase.auth.getSession();
         const token = data.session?.access_token;

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { ownedStatementPath } from './security-rules';
 
 const RunInput = z.object({
   analysisId: z.string().uuid(),
@@ -86,9 +87,9 @@ export const runAnalysis = createServerFn({ method: "POST" })
     // Get signed URL for file
     let fileBlob: { mime: string; b64: string } | null = null;
     if (analysis.file_url) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      // file_url stores the storage path
-      const { data: dl } = await supabaseAdmin.storage.from("statements").download(analysis.file_url);
+      if (!ownedStatementPath(analysis.file_url, userId)) throw new Error('Statement access denied');
+      const { data: dl, error: downloadError } = await supabase.storage.from("statements").download(analysis.file_url);
+      if (downloadError || !dl) throw new Error('Unable to read your statement');
       if (dl) {
         const ab = await dl.arrayBuffer();
         const b64 = Buffer.from(ab).toString("base64");

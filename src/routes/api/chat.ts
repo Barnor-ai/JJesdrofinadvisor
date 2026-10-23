@@ -25,14 +25,18 @@ export const Route = createFileRoute("/api/chat")({
         }
         const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
           auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: `Bearer ${token}` } },
         });
         const { data: claimsData, error: claimsErr } = await sb.auth.getClaims(token);
         if (claimsErr || !claimsData?.claims?.sub) {
           return new Response("Unauthorized", { status: 401 });
         }
+        const session = await sb.rpc('session_active');
+        if (session.error || !session.data) return new Response('Session expired', { status: 401 });
 
         // --- Input validation + size limits ---
-        const body = (await request.json()) as { messages?: UIMessage[]; analysisContext?: string };
+        let body: { messages?: UIMessage[]; analysisId?: string };
+        try { body = await request.json(); } catch { return new Response('Invalid JSON', { status: 400 }); }
         if (!Array.isArray(body.messages)) return new Response("Bad request", { status: 400 });
         if (body.messages.length === 0 || body.messages.length > MAX_MESSAGES) {
           return new Response(`Message count must be between 1 and ${MAX_MESSAGES}`, { status: 400 });
@@ -44,7 +48,10 @@ export const Route = createFileRoute("/api/chat")({
           }
         }
 
-        const rawCtx = typeof body.analysisContext === "string" ? body.analysisContext : "";
+        if (typeof body.analysisId !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.analysisId)) return new Response('Analysis required', { status: 400 });
+        const { data: owned, error: ownershipError } = await sb.from('analyses').select('analysis').eq('id', body.analysisId).eq('user_id', claimsData.claims.sub).single();
+        if (ownershipError || !owned) return new Response('Analysis not found', { status: 404 });
+        const rawCtx = JSON.stringify(owned.analysis ?? {});
         let analysisContext = rawCtx.slice(0, MAX_CTX_CHARS);
         // Lightweight prompt-injection guard
         if (/ignore (all |the )?previous (instructions|messages|prompt)/i.test(analysisContext)) {

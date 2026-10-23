@@ -17,7 +17,11 @@ export const Route = createFileRoute("/_authenticated/analyses/")({
 function List() {
   const { data } = useQuery({
     queryKey: ["analyses"],
-    queryFn: async () => (await supabase.from("analyses").select("*").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => {
+      const [active, saved] = await Promise.all([supabase.from('analyses').select('*').order('created_at', { ascending: false }), supabase.from('saved_reports').select('*').order('created_at', { ascending: false })]);
+      if (active.error || saved.error) throw new Error(active.error?.message ?? saved.error?.message);
+      return [...(active.data ?? []), ...(saved.data ?? []).map(a => ({ ...a, status: 'completed' }))];
+    },
   });
   const [filter, setFilter] = useState<string>("All");
 
