@@ -13,14 +13,14 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => pageMetadata("Sign in — FinScope", "Sign in to your FinScope Financial Analyst tool account."),
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { next?: string } => ({
     next: typeof s.next === "string" ? s.next : "",
   }),
   component: AuthPage,
 });
 
 // Only accept same-origin relative paths — never an absolute URL.
-function safeNext(next: string, fallback: string) {
+function safeNext(next: string | undefined, fallback: string) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
   return next;
 }
