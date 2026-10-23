@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,7 +14,7 @@ import { UploadCloud, Loader2 } from "lucide-react";
 import { PERIODS } from "@/lib/finscope-constants";
 
 export const Route = createFileRoute("/_authenticated/upload")({
-  head: () => ({ meta: [{ title: "New analysis — FinScope" }] }),
+  head: () => pageMetadata("New analysis — FinScope", "Upload your financial statements for analysis with FinScope."),
   component: UploadPage,
 });
 

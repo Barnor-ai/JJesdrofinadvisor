@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,12 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, FileSpreadsheet, Gauge, ShieldAlert, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "FinScope — AI Financial Statement Analyzer & Advisor" },
-      { name: "description", content: "Upload your financials and receive a boardroom-grade analysis: ratios, risk score, red flags and strategic advice from an AI senior consultant." },
-    ],
-  }),
+  head: () => pageMetadata("FinScope — AI Financial Statement Analyzer & Advisor", "Upload financials for FinScope financial analysis, ratios, risk scores and strategic advice."),
   component: Landing,
 });
 

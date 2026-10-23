@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Sign in — FinScope" }] }),
+  head: () => pageMetadata("Sign in — FinScope", "Sign in to your FinScope Financial Analyst tool account."),
   validateSearch: (s: Record<string, unknown>) => ({
     next: typeof s.next === "string" ? s.next : "",
   }),
@@ -80,7 +81,7 @@ function AuthPage() {
           <span className="font-display text-2xl">FinScope</span>
         </Link>
         <div className="relative">
-          <p className="text-xs tracking-[0.4em] text-gold uppercase mb-4">AI Financial Analyst</p>
+            <p className="text-xs tracking-[0.4em] text-gold uppercase mb-4">Financial Analyst tool</p>
           <h2 className="font-display text-4xl leading-tight">Financial clarity, on demand.</h2>
           <p className="mt-4 text-navy-foreground/70 max-w-md">Upload your statements. Receive ratios, a risk score, red flags and strategic advice within minutes.</p>
         </div>

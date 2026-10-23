@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/page-metadata";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
@@ -17,7 +18,7 @@ import { YoyTable, type YoyRow } from "@/components/yoy-table";
 import { TrendChart } from "@/components/dashboard-charts";
 
 export const Route = createFileRoute("/_authenticated/analyses/$id")({
-  head: () => ({ meta: [{ title: "Report — FinScope" }] }),
+  head: () => pageMetadata("Report — FinScope", "Review financial analysis, ratios, risk, recommendations and downloadable reports in FinScope."),
   component: AnalysisPage,
 });
 
