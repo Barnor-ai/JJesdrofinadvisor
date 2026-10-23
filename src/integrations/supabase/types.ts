@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json
+          id: string
+          target_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+        }
+        Relationships: []
+      }
       analyses: {
         Row: {
           analysis: Json | null
@@ -72,6 +99,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      app_settings: {
+        Row: {
+          enforce_subscriptions: boolean
+          id: string
+          inactivity_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          enforce_subscriptions?: boolean
+          id?: string
+          inactivity_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          enforce_subscriptions?: boolean
+          id?: string
+          inactivity_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {
@@ -165,15 +213,146 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          active: boolean
+          analysis_limit: number | null
+          company_limit: number | null
+          currency: string | null
+          features: Json
+          id: string
+          name: string
+          price_amount: number | null
+          report_limit: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          analysis_limit?: number | null
+          company_limit?: number | null
+          currency?: string | null
+          features?: Json
+          id: string
+          name: string
+          price_amount?: number | null
+          report_limit?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          analysis_limit?: number | null
+          company_limit?: number | null
+          currency?: string | null
+          features?: Json
+          id?: string
+          name?: string
+          price_amount?: number | null
+          report_limit?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          expires_at: string | null
+          plan_id: string | null
+          provider_subscription_id: string | null
+          renews_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          plan_id?: string | null
+          provider_subscription_id?: string | null
+          renews_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          plan_id?: string | null
+          provider_subscription_id?: string | null
+          renews_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usage_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          operation_id: string
+          period_start: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          operation_id: string
+          period_start?: string
+          state?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          operation_id?: string
+          period_start?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -300,6 +479,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "user"],
+    },
   },
 } as const
