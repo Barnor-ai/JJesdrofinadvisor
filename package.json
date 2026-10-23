@@ -2,6 +2,7 @@
   "name": "tanstack_start_ts",
   "private": true,
   "sideEffects": false,
+  "overrides": { "dompurify": "3.4.17" },
   "type": "module",
   "scripts": {
     "dev": "vite dev",

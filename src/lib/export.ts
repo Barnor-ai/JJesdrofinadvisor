@@ -70,6 +70,7 @@ export async function exportAnalysisPDF(a: Analysis, j: AJ) {
       body: j.yoy_pl.map(r => [r.line_item, r.current?.toLocaleString() ?? "—", r.previous?.toLocaleString() ?? "—", r.change?.toLocaleString() ?? "—", r.change_pct !== null && r.change_pct !== undefined ? `${r.change_pct.toFixed(1)}%` : "—"]),
       headStyles: { fillColor: navy },
     });
+    tableEnd();
   }
   if (j.ratios?.length) {
     doc.addPage(); y = 20;
