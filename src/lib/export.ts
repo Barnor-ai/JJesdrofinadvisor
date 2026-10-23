@@ -9,7 +9,7 @@ type Analysis = {
   risk_score: number | null;
   companies?: { name: string; industry?: string | null; location?: string | null; currency?: string | null } | null;
 };
-type AJ = ChartAnalysis & {
+type AJ = Omit<ChartAnalysis, "ratios" | "yoy_pl"> & {
   executive_summary?: string; financial_health_score?: number; risk_score?: number;
   profitability_analysis?: string; liquidity_analysis?: string; cash_flow_analysis?: string;
   debt_risk_analysis?: string; investor_commentary?: string; conclusion?: string;

@@ -128,7 +128,7 @@ export async function renderReportCharts(charts: ReportChart[], currency: string
       plugins: [{ id: "reportPaper", beforeDraw: c => { const ctx = c.ctx; ctx.save(); ctx.globalCompositeOperation = "destination-over"; ctx.fillStyle = token("--report-paper"); ctx.fillRect(0, 0, c.width, c.height); ctx.restore(); }, afterDatasetsDraw: c => {
         if (spec.kind === "pie") return;
         const ctx = c.ctx; ctx.save(); ctx.fillStyle = token("--navy"); ctx.font = "14px Arial"; ctx.textAlign = "center";
-        c.data.datasets.forEach((d, di) => c.getDatasetMeta(di).data.forEach((element, i) => { const value = spec.series[di]?.values[i]; if (value === null || value === undefined) return; const p = element.tooltipPosition(true); ctx.fillText(format(value, spec.unit), p.x, p.y + (value < 0 ? 19 : -10)); })); ctx.restore();
+        c.data.datasets.forEach((d, di) => c.getDatasetMeta(di).data.forEach((element, i) => { const value = spec.series[di]?.values[i]; if (value === null || value === undefined) return; const p = element.tooltipPosition(true); if (p.x === null || p.y === null) return; ctx.fillText(format(value, spec.unit), p.x, p.y + (value < 0 ? 19 : -10)); })); ctx.restore();
       } }],
     });
     output.push({ ...spec, png: canvas.toDataURL("image/png") });
